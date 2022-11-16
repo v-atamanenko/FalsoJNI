@@ -202,6 +202,8 @@ didn't have time yet to write a proper documentation. As a direction for
 further info, look at `FalsoJNI_ImplBridge.h` header for common type definitions
 and JDA functions.
 
+4. [Oracle JNI spec](https://docs.oracle.com/javase/7/docs/technotes/guides/jni/spec/functions.html) is your friend.
+
 ## TODO
 
 1. Exception handling. They are completely ignored now.
