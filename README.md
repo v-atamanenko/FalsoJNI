@@ -216,8 +216,9 @@ and JDA functions.
 `FalsoJNI_Impl.c` for you.
 
 ## Credits
-* TheFloW
-* Rinnegatamante
+* **TheFloW and Rinnegatamante** for fake JNI interfaces implementations
+in [gtasa_vita](https://github.com/TheOfficialFloW/gtasa_vita/) that
+served as inspiration and basis for this lib.
 
 ## License
 
