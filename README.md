@@ -1,18 +1,19 @@
-# FalsoJNI
+<h1 align="center"><img alt="FalsoJNI" src="https://raw.githubusercontent.com/gist/v-atamanenko/6c869223e8e676bf00a054381d008143/raw/5664b2ef1838ad2675e8e0969c85494f138397c7/falsojni_logo.svg"></h1>
+<p align="center">
+  <a href="#setup">Setup</a> •
+  <a href="#implementing-methods">Implementing Methods</a> •
+  <a href="#implementing-fields">Implementing Fields</a> •
+  <a href="#tips">Tips</a> •
+  <a href="#todo">TODO</a> •
+  <a href="#credits">Credits</a> •
+  <a href="#license">License</a>
+</p>
 
 FalsoJNI (*falso* as in *fake*) is a simple, zero-dependency fake JVM/JNI
 interface written in C.
 
 It is created mainly to make JNI-heavy Android→PSVita ports easier, but probably
 could be used for other purposes as well.
-
-* [Setup](#setup)
-* [Implementing Methods](#implementing-methods)
-* [Implementing Fields](#implementing-fields)
-* [Tips](#tips)
-* [TODO](#todo)
-* [Credits](#credits)
-* [License](#license)
 
 ## Setup
 
