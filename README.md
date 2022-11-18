@@ -34,14 +34,16 @@ To do this, from `FalsoJNI_ImplSample.h` copy the definitions between
 `COPY STARTING FROM HERE!` and `COPY UP TO HERE!` to your project in any `.c`
 file (you could also divide it into several files if you need to).
 
-After that, you already can supply `JNIEnv` and `JavaVM` objects to your client
-application, like this:
+After that, you already init FalsoJNI and supply `JNIEnv` and `JavaVM` objects
+to your client application, like this:
 
 ```c
 #include "FalsoJNI.h"
 
 int main() {
     // ...
+    
+    jni_init(); // Initializes jvm and jni objects
 
     int (*JNI_OnLoad)(JavaVM* jvm) = (void*)so_symbol(&so_mod,"JNI_OnLoad");
     JNI_OnLoad(&jvm);
