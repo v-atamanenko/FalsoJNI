@@ -847,7 +847,7 @@ struct _JNIEnv {
     { return functions->GetStringUTFChars(this, string, isCopy); }
 
     void ReleaseStringUTFChars(jstring string, const char* utf)
-    { functions->ReleaseStringUTFChars(this, string, utf); }
+    { functions->ReleaseStringUTFChars(this, string, (char *) utf); }
 
     jsize GetArrayLength(jarray array)
     { return functions->GetArrayLength(this, array); }
