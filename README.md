@@ -212,9 +212,8 @@ and JDA functions.
 1. Exception handling. They are completely ignored now.
 2. GetArrayLength for ObjectField values. (if needed?)
 3. MonitorEnter/MonitorExit (per-javaobject semaphores).
-4. GetPrimitiveArrayCritical/ReleasePrimitiveArrayCritical
-5. DirectByteBuffers.
-6. Dry Run mode that would record methods/fields definitions to
+4. DirectByteBuffers.
+5. Dry Run mode that would record methods/fields definitions to
 `FalsoJNI_Impl.c` for you.
 
 ## Credits
