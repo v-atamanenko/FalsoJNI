@@ -3,7 +3,7 @@
  *
  * Fake Java Native Interface, providing JavaVM and JNIEnv objects.
  *
- * Copyright (C) 2022 Volodymyr Atamanenko
+ * Copyright (C) 2022-2023 Volodymyr Atamanenko
  *
  * This software may be modified and distributed under the terms
  * of the MIT license. See the LICENSE file for details.
@@ -1666,15 +1666,22 @@ void GetStringUTFRegion(JNIEnv* env, jstring str, jsize start, jsize len, char* 
     strncpy(buf, (const char*)str + start, len);
 }
 
-// TODO: Implement GetPrimitiveArrayCritical/ReleasePrimitiveArrayCritical
-
 void* GetPrimitiveArrayCritical(JNIEnv* env, jarray array, jboolean* isCopy) {
-    fjni_logv_warn("[JNI] GetPrimitiveArrayCritical(env, 0x%x, 0x%x): not implemented", (int)array, (int)isCopy);
-    return NULL;
+    if (isCopy) *isCopy = JNI_FALSE;
+
+    JavaDynArray * jda = jda_find((void *) array);
+    if (!jda) {
+        fjni_logv_err("[JNI] GetPrimitiveArrayCritical(env, 0x%x, 0x%x): Array not found.", (int)array, (int)isCopy);
+        return;
+    }
+
+    fjni_logv_dbg("[JNI] GetPrimitiveArrayCritical(env, 0x%x, 0x%x)", (int)array, (int)isCopy);
+    return jda->array;
 }
 
 void ReleasePrimitiveArrayCritical(JNIEnv* env, jarray array, void* carray, jint mode) {
-    fjni_log_warn("[JNI] ReleasePrimitiveArrayCritical(): not implemented");
+    // We never copy in GetPrimitiveArrayCritical, so can ignore Release*
+    fjni_logv_dbg("[JNI] ReleasePrimitiveArrayCritical(env, 0x%x, 0x%x, %i): ignored", (int)array, (int)carray, mode);
 }
 
 const jchar* GetStringCritical(JNIEnv* env, jstring string, jboolean* isCopy) {
