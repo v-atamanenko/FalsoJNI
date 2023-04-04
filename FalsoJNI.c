@@ -1672,7 +1672,7 @@ void* GetPrimitiveArrayCritical(JNIEnv* env, jarray array, jboolean* isCopy) {
     JavaDynArray * jda = jda_find((void *) array);
     if (!jda) {
         fjni_logv_err("[JNI] GetPrimitiveArrayCritical(env, 0x%x, 0x%x): Array not found.", (int)array, (int)isCopy);
-        return;
+        return NULL;
     }
 
     fjni_logv_dbg("[JNI] GetPrimitiveArrayCritical(env, 0x%x, 0x%x)", (int)array, (int)isCopy);
