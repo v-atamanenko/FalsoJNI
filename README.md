@@ -213,7 +213,8 @@ and JDA functions.
 2. GetArrayLength for ObjectField values. (if needed?)
 3. MonitorEnter/MonitorExit (per-javaobject semaphores).
 4. DirectByteBuffers.
-5. Dry Run mode that would record methods/fields definitions to
+5. Keep track of references and destroy objects when there aren't any left.
+6. Dry Run mode that would record methods/fields definitions to
 `FalsoJNI_Impl.c` for you.
 
 ## Credits
