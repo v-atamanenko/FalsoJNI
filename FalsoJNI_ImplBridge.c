@@ -25,6 +25,10 @@ pthread_mutex_t* javaDynArrays_mutex = NULL;
 size_t javaDynArrays_free = 0;
 size_t javaDynArrays_taken = 0;
 
+JavaDynArray** javaDynArrays_static = NULL;
+size_t javaDynArrays_static_count = 0;
+size_t javaDynArrays_static_capacity = 16;
+
 jfieldID getFieldIdByName(const char* name) {
     for (int i = 0; i < nameToFieldId_size() / sizeof(NameToFieldID); i++) {
         if (strcmp(name, nameToFieldId[i].name) == 0) {
@@ -314,6 +318,19 @@ jboolean jda_tryinit() {
         javaDynArrays_taken = 0;
     }
 
+    if (javaDynArrays_static == NULL) {
+        javaDynArrays_static = malloc(16 * sizeof(JavaDynArray *));
+        if (!javaDynArrays_static)
+            return JNI_FALSE;
+
+        for (int i = 0; i < 16; ++i) {
+            javaDynArrays_static[i] = NULL;
+        }
+
+        javaDynArrays_static_capacity = 16;
+        javaDynArrays_static_count = 0;
+    }
+
     return JNI_TRUE;
 }
 
@@ -338,6 +355,18 @@ jboolean jda_extend() {
 
         javaDynArrays_free = 16;
     }
+
+    if (javaDynArrays_static_capacity - javaDynArrays_static_count == 0) {
+        if (javaDynArrays_static == NULL)
+            return JNI_FALSE;
+
+        for (int i = javaDynArrays_static_count; i < javaDynArrays_static_count + 16; ++i) {
+            javaDynArrays_static[i] = NULL;
+        }
+
+        javaDynArrays_static_capacity += 16;
+    }
+
     return JNI_TRUE;
 }
 
@@ -381,12 +410,52 @@ JavaDynArray * jda_alloc(jsize len, FIELD_TYPE type) {
     return ret;
 }
 
+jboolean jda_alloc_static(JavaDynArray * jda, jsize len, FIELD_TYPE type) {
+    jda_lock();
+
+    void * array = malloc(len * getFieldTypeSize(type));
+    if (!array) {
+        jda_unlock();
+        return JNI_FALSE;
+    }
+
+    if (jda_extend() == JNI_FALSE) {
+        jda_unlock();
+        free(array);
+        return JNI_FALSE;
+    }
+
+    int index = -1;
+    for (int i = 0; i < javaDynArrays_static_capacity; ++i) {
+        if (javaDynArrays_static[i] == NULL) {
+            index = i;
+        }
+    }
+
+    if (index == -1) {
+        jda_unlock();
+        free(array);
+        return JNI_FALSE;
+    }
+
+    javaDynArrays_static[index] = jda;
+
+    jda->array = array;
+    jda->len = len;
+    jda->type = type;
+
+    javaDynArrays_static_count++;
+
+    jda_unlock();
+    return JNI_TRUE;
+}
+
 jsize jda_sizeof(JavaDynArray * jda) {
     if (!jda) return -1;
-    if (!javaDynArrays) return -1;
+    if (!javaDynArrays && !javaDynArrays_static) return -1;
 
     jda_lock();
-    if (javaDynArrays_taken == 0) {
+    if (javaDynArrays_taken == 0 && javaDynArrays_static_count == 0) {
         jda_unlock();
         return -1;
     }
@@ -403,16 +472,28 @@ jsize jda_sizeof(JavaDynArray * jda) {
         }
     }
 
+    for (int i = 0; i < (javaDynArrays_static_capacity); i++) {
+        if (jda == javaDynArrays_static[i]) {
+            if (javaDynArrays_static[i]->array == NULL) {
+                jda_unlock();
+                return -1;
+            }
+            jsize ret = javaDynArrays_static[i]->len;
+            jda_unlock();
+            return ret;
+        }
+    }
+
     jda_unlock();
     return -1;
 }
 
 jboolean jda_free(JavaDynArray * jda) {
     if (!jda) return JNI_FALSE;
-    if (!javaDynArrays) return JNI_FALSE;
+    if (!javaDynArrays && !javaDynArrays_static) return JNI_FALSE;
 
     jda_lock();
-    if (javaDynArrays_taken == 0) {
+    if (javaDynArrays_taken == 0 && javaDynArrays_static_count == 0) {
         jda_unlock();
         return JNI_FALSE;
     }
@@ -424,28 +505,47 @@ jboolean jda_free(JavaDynArray * jda) {
         }
     }
 
-    if (index == -1) {
+    if (index != -1) {
+        free(javaDynArrays[index].array);
+        javaDynArrays[index].array = NULL;
+        javaDynArrays[index].type = FIELD_TYPE_UNKNOWN;
+        javaDynArrays[index].len = 0;
+
+        javaDynArrays_taken--;
+        javaDynArrays_free++;
         jda_unlock();
-        return JNI_FALSE;
+        return JNI_TRUE;
     }
 
-    free(javaDynArrays[index].array);
-    javaDynArrays[index].array = NULL;
-    javaDynArrays[index].type = FIELD_TYPE_UNKNOWN;
-    javaDynArrays[index].len = 0;
+    for (int i = 0; i < javaDynArrays_static_capacity; ++i) {
+        if (javaDynArrays_static[i] == NULL) {
+            index = i;
+        }
+    }
 
-    javaDynArrays_taken--;
-    javaDynArrays_free++;
+    if (index != -1) {
+        free(javaDynArrays_static[index]->array);
+        javaDynArrays_static[index]->array = NULL;
+        javaDynArrays_static[index]->type = FIELD_TYPE_UNKNOWN;
+        javaDynArrays_static[index]->len = 0;
+
+        javaDynArrays_static[index] = NULL;
+        javaDynArrays_static_count--;
+
+        jda_unlock();
+        return JNI_TRUE;
+    }
+  
     jda_unlock();
-    return JNI_TRUE;
+    return JNI_FALSE;
 }
 
 JavaDynArray * jda_find(void * arr) {
     if (!arr) return NULL;
-    if (!javaDynArrays) return NULL;
+    if (!javaDynArrays && !javaDynArrays_static) return NULL;
 
     jda_lock();
-    if (javaDynArrays_taken == 0) {
+    if (javaDynArrays_taken == 0 && javaDynArrays_static_count == 0) {
         jda_unlock();
         return NULL;
     }
@@ -457,6 +557,18 @@ JavaDynArray * jda_find(void * arr) {
                 return NULL;
             }
             JavaDynArray * ret = &javaDynArrays[i];
+            jda_unlock();
+            return ret;
+        }
+    }
+
+    for (int i = 0; i < javaDynArrays_static_capacity; ++i) {
+        if (arr == javaDynArrays_static[i]) {
+            if (javaDynArrays_static[i]->array == NULL) {
+                jda_unlock();
+                return NULL;
+            }
+            JavaDynArray * ret = javaDynArrays_static[i];
             jda_unlock();
             return ret;
         }

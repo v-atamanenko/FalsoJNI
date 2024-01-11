@@ -132,6 +132,7 @@ typedef struct {
 } JavaDynArray;
 
 JavaDynArray * jda_alloc(jsize len, FIELD_TYPE type);
+jboolean       jda_alloc_static(JavaDynArray * jda, jsize len, FIELD_TYPE type);
 jsize          jda_sizeof(JavaDynArray * jda);
 jboolean       jda_free(JavaDynArray * jda);
 JavaDynArray * jda_find(void * arr);
