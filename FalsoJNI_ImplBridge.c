@@ -360,6 +360,8 @@ jboolean jda_extend() {
         if (javaDynArrays_static == NULL)
             return JNI_FALSE;
 
+        javaDynArrays_static = realloc(javaDynArrays_static, (sizeof(JavaDynArray *) * (javaDynArrays_static_count+16)));
+
         for (int i = javaDynArrays_static_count; i < javaDynArrays_static_count + 16; ++i) {
             javaDynArrays_static[i] = NULL;
         }
