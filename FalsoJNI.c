@@ -201,9 +201,9 @@ void DeleteGlobalRef(JNIEnv* env, jobject obj) {
     // call free(), except for dynamically allocated arrays. We provide
     // a separate "destructor" for those.
 
-    if (jda_free(obj) == JNI_FALSE) {
-        // Reserved fake identifiers
-        if ((int)obj != 0x42424242 && (int)obj != 0x69696969) {
+    // Reserved fake identifiers
+    if ((int)obj != 0x42424242 && (int)obj != 0x69696969) {
+        if (jda_free(obj) == JNI_FALSE) {
             if (obj) free(obj);
         }
     }

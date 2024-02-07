@@ -520,7 +520,7 @@ jboolean jda_free(JavaDynArray * jda) {
     }
 
     for (int i = 0; i < javaDynArrays_static_capacity; ++i) {
-        if (javaDynArrays_static[i] == NULL) {
+        if (jda == javaDynArrays_static[i]) {
             index = i;
         }
     }
