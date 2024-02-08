@@ -26,6 +26,7 @@
 
 #include "FalsoJNI_ImplBridge.h"
 #include "FalsoJNI_Logger.h"
+#include "ConvertUTF.h"
 
 // Objects to be passed to client applications:
 JavaVM jvm;
@@ -1168,7 +1169,7 @@ void SetStaticDoubleField(JNIEnv* env, jclass clazz, jfieldID fieldID, jdouble v
 }
 
 jstring NewString(JNIEnv* env, const jchar* chars, jsize char_count) {
-    fjni_logv_dbg("[JNI] NewString(env, \"%s\", %i)", (char*)chars, char_count);
+    fjni_logv_dbg("[JNI] NewString(env, \"%ls\", %i)", chars, char_count);
 
     // abort()s here replicate Dalvik behavior.
     if (char_count < 0) {
@@ -1181,9 +1182,21 @@ jstring NewString(JNIEnv* env, const jchar* chars, jsize char_count) {
         abort();
     }
 
-    char* newStr = malloc(char_count+1);
-    strncpy(newStr, (const char*)chars, char_count);
-    return newStr;
+    UTF8 * dst = malloc((char_count+1) * sizeof(UTF8));
+
+    UTF16 * sourceStart = &(((UTF16*)chars)[0]);
+    UTF16 * sourceEnd = &(((UTF16*)chars)[char_count]);
+    UTF8 *  targetStart = &dst[0];
+    UTF8 *  targetEnd = &dst[char_count];
+    ConversionResult res = ConvertUTF16toUTF8(&sourceStart, sourceEnd,
+                                              &targetStart, targetEnd, 1);
+    if (res != conversionOK) {
+        fjni_logv_err("Fatal: utf16 => utf8 conversion failed (%i)", res);
+        abort();
+    }
+
+    dst[char_count] = '\0';
+    return dst;
 }
 
 jsize GetStringLength(JNIEnv* env, jstring string) {
