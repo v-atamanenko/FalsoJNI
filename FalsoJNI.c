@@ -1216,7 +1216,22 @@ const jchar * GetStringChars(JNIEnv* env, jstring string, jboolean *isCopy) {
         *isCopy = JNI_TRUE;
     }
 
-    return (const jchar *)strdup((const char*)string);
+    size_t size = strlen(string);
+    UTF16 * dst = malloc((size+1) * sizeof(UTF16));
+
+    UTF8 * sourceStart = (UTF8 *)string;
+    UTF8 * sourceEnd = &(((UTF8*)string)[size]);
+    UTF16 *  targetStart = &dst[0];
+    UTF16 *  targetEnd = &dst[size];
+    ConversionResult res = ConvertUTF8toUTF16(&sourceStart, sourceEnd,
+                                              &targetStart, targetEnd, 1);
+    if (res != conversionOK) {
+        fjni_logv_err("Fatal: utf8 => utf16 conversion failed (%i)", res);
+        abort();
+    }
+
+    dst[size] = 0;
+    return dst;
 }
 
 void ReleaseStringChars(JNIEnv* env, jstring string, const jchar *chars) {
