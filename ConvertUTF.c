@@ -302,7 +302,7 @@ ConversionResult ConvertUTF16toUTF8 (
  * definition of UTF-8 goes up to 4-byte sequences.
  */
 
-inline Boolean isLegalUTF8(const UTF8 *source, int length) {
+Boolean isLegalUTF8(const UTF8 *source, int length) {
     UTF8 a;
     const UTF8 *srcptr = source+length;
     switch (length) {
