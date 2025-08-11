@@ -102,7 +102,7 @@ jstring GetUsername(jmethodID id, va_list args) { // Ljava/lang/String; (ret typ
     
     // If you want to work with Java strings, always use respective JNI methods!
     // They are NOT c-strings.
-    const char * email = jni->GetStringUTFChars(jni, _email, NULL);
+    const char * email = jni->GetStringUTFChars(&jni, _email, NULL);
     const char * username = MyCoolFunctionToLookupUsername(_email);
     jni->ReleaseStringUTFChars(&jni, _email, email);
     
