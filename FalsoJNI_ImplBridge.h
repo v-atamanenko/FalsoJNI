@@ -132,10 +132,20 @@ typedef struct {
 } JavaDynArray;
 
 JavaDynArray * jda_alloc(jsize len, FIELD_TYPE type);
-jboolean       jda_alloc_static(JavaDynArray * jda, jsize len, FIELD_TYPE type);
 jsize          jda_sizeof(JavaDynArray * jda);
 jboolean       jda_free(JavaDynArray * jda);
-JavaDynArray * jda_find(void * arr);
+
+/*
+ * Internal string storage and manipulation
+ */
+
+typedef struct {
+    JavaDynArray * utf16;
+    JavaDynArray * utf8;
+} JavaString;
+
+jboolean jstr_utf16_to_utf8(JavaString * jstr);
+jboolean jstr_utf8_to_utf16(JavaString * jstr);
 
 /*
  * Helper macros / functions
@@ -198,7 +208,7 @@ va_list _AtoV(int dummy, ...);
 })
 
 #define GetPrimitiveArrayRegion(fun_name, fieldType, jType, array, start, length, buffer) ({ \
-    JavaDynArray * jda = jda_find((void *) array); \
+    JavaDynArray * jda = (JavaDynArray *) array; \
     if (!jda) { \
         fjni_logv_err("[JNI] %s(env, 0x%x, %i, %i, 0x%x): Array not found.", fun_name, (int)array, start, length, buffer); \
         return; \
@@ -219,7 +229,7 @@ va_list _AtoV(int dummy, ...);
 })
 
 #define SetPrimitiveArrayRegion(fun_name, fieldType, jType, array, start, length, buffer) ({ \
-    JavaDynArray * jda = jda_find((void *) array); \
+    JavaDynArray * jda = (JavaDynArray *) array; \
     if (!jda) { \
         fjni_logv_err("[JNI] %s(env, 0x%x, %i, %i, 0x%x): Array not found!", fun_name, (int)array, start, length, buffer); \
         return; \

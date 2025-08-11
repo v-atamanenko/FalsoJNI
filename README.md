@@ -9,8 +9,8 @@
   <a href="#license">License</a>
 </p>
 
-FalsoJNI (*falso* as in *fake*) is a simple, zero-dependency fake JVM/JNI
-interface written in C.
+FalsoJNI (*falso* as in *fake* from Italian) is a simple, zero-dependency fake
+JVM/JNI interface written in C.
 
 It is created mainly to make JNI-heavy Android→PSVita ports easier, but probably
 could be used for other purposes as well.
@@ -24,6 +24,7 @@ all the source files:
 FalsoJNI/FalsoJni.c
 FalsoJNI/FalsoJni_ImplBridge.c
 FalsoJNI/FalsoJni_Logger.c
+FalsoJNI/converter.c
 ```
 
 Second thing you need to do, is to create your own `FalsoJNI_Impl` file. You
@@ -32,7 +33,7 @@ ones called with `jni->CallVoidMethodV` and similars) and **Fields**.
 
 To do this, from `FalsoJNI_ImplSample.h` copy the definitions between
 `COPY STARTING FROM HERE!` and `COPY UP TO HERE!` to your project in any `.c`
-file (you could also divide it into several files if you need to).
+file (you could also split it up into several files if you need to).
 
 After that, you already init FalsoJNI and supply `JNIEnv` and `JavaVM` objects
 to your client application, like this:
@@ -80,7 +81,7 @@ Java method signatures are translated into FalsoJNI-compatible implementations:
 ```c
 
 // FalsoJNI always passes arguments as a va_list to be able to make single
-// function implementation no matter how is it called (i.e. CallMethod,
+// function implementation no matter how it is called (i.e. CallMethod,
 // CallMethodV, or CallMethodA ).
 
 // "SetShiftEnabled", "(Z)V"
@@ -95,6 +96,19 @@ jint GetDisplayOrientationLock(jmethodID id, va_list args) { // I (ret type) is 
     return 0;
 }
 
+// "GetUsername", "(Ljava/lang/String;)Ljava/lang/String;"
+jstring GetUsername(jmethodID id, va_list args) { // Ljava/lang/String; (ret type) is a jstring
+    jstring _email = va_arg(args, jstring);
+    
+    // If you want to work with Java strings, always use respective JNI methods!
+    // They are NOT c-strings.
+    const char * email = jni->GetStringUTFChars(jni, _email, NULL);
+    const char * username = MyCoolFunctionToLookupUsername(_email);
+    jni->ReleaseStringUTFChars(jni, _email, email);
+    
+    return jni->NewStringUTF(jni, username);
+}
+
 // "read", "([BII)I"
 jint InputStream_read(jmethodID id, va_list args) { // I (ret type) is an integer
     jbyteArray _b = va_arg(args, char*); // [B is a byte array.
@@ -102,7 +116,7 @@ jint InputStream_read(jmethodID id, va_list args) { // I (ret type) is an intege
     jint len = va_arg(args, int); // I is an int
 
     // Before accessing/changing the array elements, we have to do the following:
-    JavaDynArray * jda = jda_find(_b);
+    JavaDynArray * jda = (JavaDynArray *) _b;
     if (!jda) {
         log_error("[java.io.InputStream.read()] Provided buffer is not a valid JDA.");
         return 0;
@@ -124,6 +138,8 @@ are operating on.
 
 If you need to return an array in Java method implementation, — likewise.
 Work with `jda->array`, return `jda`.
+
+Also notice the second-to-last example to see how you can work with Java strings.
 
 ### Step 2. Put them in relevant arrays
 
@@ -228,6 +244,9 @@ This software may be modified and distributed under the terms of
 the MIT license. See the [LICENSE](LICENSE) file for details.
 
 Contains parts of Dalvik implementation of JNI interfaces,
-Copyright (C) 2008 The Android Open Source Project
+copyright (C) 2008 The Android Open Source Project,\
+licensed under the Apache License, Version 2.0.
 
-Licensed under the Apache License, Version 2.0.
+Includes `converter.c` and `converter.h`,
+copyright (C) 2015 Jonathan Bennett <jon@autoitscript.com>,
+licensed under the Apache License, Version 2.0.

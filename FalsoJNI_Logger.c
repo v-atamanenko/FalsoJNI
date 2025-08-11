@@ -51,7 +51,7 @@ static char _fjni_log_buffer_2[2048];
 #define LOG_PRINT \
     va_list list; \
     va_start(list, fmt); \
-    sceClibVsnprintf(_fjni_log_buffer_2, sizeof(_fjni_log_buffer_2), _fjni_log_buffer_1, list); \
+    sceClibVsnprintf(_fjni_log_buffer_2, sizeof(_fjni_log_buffer_2) - 1, _fjni_log_buffer_1, list); \
     va_end(list); \
     sceClibPrintf(_fjni_log_buffer_2);
 
@@ -59,7 +59,7 @@ void _fjni_log_info(const char *fi, int li, const char *fn, const char* fmt, ...
 #if FALSOJNI_DEBUGLEVEL <= FALSOJNI_DEBUG_INFO
     LOG_LOCK
 
-    sceClibSnprintf(_fjni_log_buffer_1, sizeof(_fjni_log_buffer_1),
+    sceClibSnprintf(_fjni_log_buffer_1, sizeof(_fjni_log_buffer_1) - 1,
                     "%s[INFO] %s%s\n", COLOR_BLUE, fmt, COLOR_END);
 
     LOG_PRINT
@@ -71,7 +71,7 @@ void _fjni_log_warn(const char *fi, int li, const char *fn, const char* fmt, ...
 #if FALSOJNI_DEBUGLEVEL <= FALSOJNI_DEBUG_WARN
     LOG_LOCK
 
-    sceClibSnprintf(_fjni_log_buffer_1, sizeof(_fjni_log_buffer_1),
+    sceClibSnprintf(_fjni_log_buffer_1, sizeof(_fjni_log_buffer_1) - 1,
                     "%s[WARN][%s:%d][%s] %s%s\n", COLOR_ORANGE, fi, li, fn, fmt, COLOR_END);
 
     LOG_PRINT
@@ -83,7 +83,7 @@ void _fjni_log_debug(const char *fi, int li, const char *fn, const char* fmt, ..
 #if FALSOJNI_DEBUGLEVEL <= FALSOJNI_DEBUG_ALL
     LOG_LOCK
 
-    sceClibSnprintf(_fjni_log_buffer_1, sizeof(_fjni_log_buffer_1),
+    sceClibSnprintf(_fjni_log_buffer_1, sizeof(_fjni_log_buffer_1) - 1,
                     "[DBG][%s:%d][%s] %s\n", fi, li, fn, fmt);
 
     LOG_PRINT
@@ -95,7 +95,7 @@ void _fjni_log_error(const char *fi, int li, const char *fn, const char* fmt, ..
 #if FALSOJNI_DEBUGLEVEL <= FALSOJNI_DEBUG_ERROR
     LOG_LOCK
 
-    sceClibSnprintf(_fjni_log_buffer_1, sizeof(_fjni_log_buffer_1),
+    sceClibSnprintf(_fjni_log_buffer_1, sizeof(_fjni_log_buffer_1) - 1,
                     "%s[ERROR][%s:%d][%s] %s%s\n", COLOR_RED, fi, li, fn, fmt, COLOR_END);
 
     LOG_PRINT
