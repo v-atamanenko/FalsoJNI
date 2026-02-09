@@ -126,6 +126,7 @@ jdouble     methodDoubleCall(jmethodID id, va_list args);
  */
 
 typedef struct {
+    uint32_t    magic;
     jarray      array;
     jsize       len;
     FIELD_TYPE  type;

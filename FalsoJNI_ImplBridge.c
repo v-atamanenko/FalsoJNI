@@ -22,6 +22,8 @@
 
 #include "converter.h"
 
+#define JDA_MAGIC 0xB00B1E5
+
 jfieldID getFieldIdByName(const char* name) {
     for (int i = 0; i < nameToFieldId_size() / sizeof(NameToFieldID); i++) {
         if (strcmp(name, nameToFieldId[i].name) == 0) {
@@ -285,6 +287,7 @@ JavaDynArray * jda_alloc(jsize len, FIELD_TYPE type) {
         return NULL;
     }
 
+    ret->magic = JDA_MAGIC;
     ret->array = array;
     ret->len = len;
     ret->type = type;
@@ -314,7 +317,11 @@ jboolean jda_realloc(JavaDynArray * jda, jsize len) {
 }
 
 jboolean jda_free(JavaDynArray * jda) {
-    if (!jda) return JNI_FALSE;
+    if (!jda)
+        return JNI_FALSE;
+
+    if (jda->magic != JDA_MAGIC)
+        return JNI_FALSE;
 
     free(jda->array);
     free(jda);
